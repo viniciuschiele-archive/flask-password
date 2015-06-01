@@ -162,3 +162,15 @@ class MD5PasswordHasher(BasePasswordHasher):
     def hash_password(self, password, salt):
         hash = hashlib.md5(force_bytes(salt + password)).hexdigest()
         return "%s$%s$%s" % (self.algorithm, salt, hash)
+
+
+class SHA1PasswordHasher(BasePasswordHasher):
+    algorithm = "sha1"
+
+    def check_password(self, password, hashed_password):
+        algorithm, salt, hash = hashed_password.split('$', 2)
+        return self.hash_password(password, salt) == hashed_password
+
+    def hash_password(self, password, salt):
+        hash = hashlib.sha1(force_bytes(salt + password)).hexdigest()
+        return "%s$%s$%s" % (self.algorithm, salt, hash)
