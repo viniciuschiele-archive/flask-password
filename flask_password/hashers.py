@@ -18,6 +18,7 @@ except ImportError:
 class PasswordHasher(object):
     PASSWORD_HASHERS = [
         'flask_password.hashers.BCryptPasswordHasher',
+        'flask_password.hashers.MD5PasswordHasher',
         'flask_password.hashers.PBKDF2PasswordHasher'
     ]
 
@@ -70,7 +71,6 @@ class PasswordHasher(object):
 
 
 class BasePasswordHasher(metaclass=ABCMeta):
-    @abstractmethod
     def init_app(self, app):
         pass
 
@@ -150,3 +150,15 @@ class PBKDF2PasswordHasher(BasePasswordHasher):
         hash = hashlib.pbkdf2_hmac(self.digest().name, password_bytes, salt_bytes, iterations)
         hash = base64.b64encode(hash).decode('ascii').strip()
         return "%s$%s$%s$%s" % (self.algorithm, iterations, salt, hash)
+
+
+class MD5PasswordHasher(BasePasswordHasher):
+    algorithm = "md5"
+
+    def check_password(self, password, hashed_password):
+        algorithm, salt, hash = hashed_password.split('$', 2)
+        return self.hash_password(password, salt) == hashed_password
+
+    def hash_password(self, password, salt):
+        hash = hashlib.md5(force_bytes(salt + password)).hexdigest()
+        return "%s$%s$%s" % (self.algorithm, salt, hash)
