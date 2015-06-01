@@ -1,7 +1,8 @@
 from flask import Flask
 from unittest import TestCase
 from flask_password import PasswordHasher
-from flask_password import PBKDF2PasswordHasher
+from flask_password.hashers import PBKDF2PasswordHasher
+
 
 class TestPBKDF2(TestCase):
     def setUp(self):

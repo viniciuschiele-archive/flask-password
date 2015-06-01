@@ -8,12 +8,19 @@ from .utils import force_bytes
 from .utils import force_text
 from .utils import import_string
 
+
 try:
     import bcrypt
 except ImportError:
     bcrypt = None
 
+
 class PasswordHasher(object):
+    PASSWORD_HASHERS = [
+        'flask_password.hashers.BCryptPasswordHasher',
+        'flask_password.hashers.PBKDF2PasswordHasher'
+    ]
+
     def __init__(self, app=None):
         self.__default_algorithm = None
         self.__hashers = {}
@@ -22,9 +29,9 @@ class PasswordHasher(object):
             self.init_app(app)
 
     def init_app(self, app):
-        self.__default_algorithm = app.config.get('DEFAULT_PASSWORD_HASHER')
+        self.__default_algorithm = app.config.get('DEFAULT_ALGORITHM')
 
-        classes = app.config.get('PASSWORD_HASHERS') or []
+        classes = app.config.get('PASSWORD_HASHERS', self.PASSWORD_HASHERS)
 
         for class_name in classes:
             hasher_cls = import_string(class_name)
@@ -37,7 +44,7 @@ class PasswordHasher(object):
 
     def check_password(self, password, hashed_password):
         algorithm = self.get_algorithm(hashed_password)
-        hasher = self.get_hasher(algorithm)
+        hasher = self.get_algorithm(algorithm)
         return hasher.check_password(password, hashed_password)
 
     def hash_password(self, password, salt=None, algorithm=None):
@@ -51,15 +58,15 @@ class PasswordHasher(object):
 
         return hasher.hash_password(password, salt)
 
-    @staticmethod
-    def get_algorithm(hashed_password):
-        return hashed_password.split('$', 1)[0]
-
     def get_hasher(self, algorithm):
         try:
             return self.__hashers[algorithm]
         except KeyError:
             raise ValueError("Unknown password hashing algorithm '%s'. " % algorithm)
+
+    @staticmethod
+    def get_algorithm(hashed_password):
+        return hashed_password.split('$', 1)[0]
 
 
 class BasePasswordHasher(metaclass=ABCMeta):
@@ -89,6 +96,8 @@ class BCryptPasswordHasher(BasePasswordHasher):
             self.rounds = rounds
 
     def check_password(self, password, hashed_password):
+        self.__validate_library()
+
         algorithm, data = hashed_password.split('$', 1)
 
         password = force_bytes(password)
@@ -97,15 +106,24 @@ class BCryptPasswordHasher(BasePasswordHasher):
         return bcrypt.checkpw(password, hashed_password)
 
     def hash_password(self, password, salt):
+        self.__validate_library()
+
         password = force_bytes(password)
 
         data = bcrypt.hashpw(password, salt)
         return "%s$%s" % (self.algorithm, force_text(data))
 
     def salt(self, rounds=None):
+        self.__validate_library()
+
         if not rounds:
             rounds = self.rounds
         return bcrypt.gensalt(rounds)
+
+    @staticmethod
+    def __validate_library():
+        if not bcrypt:
+            raise ImportError('bcrypt library is not installed. (pip install py-bcrypt)')
 
 
 class PBKDF2PasswordHasher(BasePasswordHasher):
