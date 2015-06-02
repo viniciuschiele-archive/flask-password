@@ -25,7 +25,7 @@ class TestMD5(TestCase):
 
     def test_algorithm(self):
         hashed_password = self.pw.hash_password('password', self.pw.salt())
-        self.assertEqual(SHA1PasswordHasher.algorithm, PasswordHasher.get_algorithm(hashed_password))
+        self.assertEqual(MD5PasswordHasher.algorithm, PasswordHasher.get_algorithm(hashed_password))
 
     def test_salt(self):
         self.assertNotEqual(self.pw.salt(), None)
