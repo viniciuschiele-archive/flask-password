@@ -13,13 +13,13 @@ pw.init_app(app)
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
-        return Response(render_template('hashing.html'))
+        return Response(render_template('hashing_example.html'))
 
     password = request.form.get('password')
     algorithm = request.form.get('algorithm')
     hashed_password = pw.hash_password(password, algorithm=algorithm)
 
-    return Response(render_template('hashing.html',
+    return Response(render_template('hashing_example.html',
                                     hashed_password=hashed_password,
                                     hashed_password_length=len(hashed_password)))
 
