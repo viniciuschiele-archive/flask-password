@@ -35,11 +35,11 @@ class PasswordHasher(object):
     """
 
     # The algorithm used to crypt the passwords.
-    # if it is None, we will take the first password hasher from PASSWORD_HASHERS as the default hasher.
-    PASSWORD_ALGORITHM = None
+    # if it is None, we will take the first password hasher from 'hashers' attribute as the default hasher.
+    algorithm = None
 
     # Hashers supported.
-    PASSWORD_HASHERS = [
+    hashers = [
         'flask_password.hashers.PBKDF2PasswordHasher',
         'flask_password.hashers.BCryptPasswordHasher',
         'flask_password.hashers.MD5PasswordHasher',
@@ -55,17 +55,17 @@ class PasswordHasher(object):
     def init_app(self, app):
         """Loads the configuration from Flask app."""
 
-        self.PASSWORD_ALGORITHM = app.config.get('PASSWORD_ALGORITHM')
-        self.PASSWORD_HASHERS = app.config.get('PASSWORD_HASHERS', self.PASSWORD_HASHERS)
+        self.algorithm = app.config.get('PASSWORD_ALGORITHM')
+        self.hashers = app.config.get('PASSWORD_HASHERS', self.hashers)
 
-        for class_name in self.PASSWORD_HASHERS:
+        for class_name in self.hashers:
             hasher_cls = import_string(class_name)
             hasher = hasher_cls()
             hasher.init_app(app)
             self.__hashers[hasher.algorithm] = hasher
 
-            if not self.PASSWORD_ALGORITHM:
-                self.PASSWORD_ALGORITHM = hasher.algorithm
+            if not self.algorithm:
+                self.algorithm = hasher.algorithm
 
     def check_password(self, password, hashed_password):
         """
@@ -94,7 +94,7 @@ class PasswordHasher(object):
         """
 
         if not algorithm:
-            algorithm = self.PASSWORD_ALGORITHM
+            algorithm = self.algorithm
 
         hasher = self.get_hasher(algorithm)
 
