@@ -21,6 +21,8 @@ from abc import abstractmethod
 from .utils import import_string
 
 
+# Try to import the bcrypt library
+# to be used by BCryptPasswordHasher class.
 try:
     import bcrypt
 except ImportError:
@@ -28,14 +30,21 @@ except ImportError:
 
 
 class PasswordHasher(object):
+    """
+    Password hasher.
+    """
+
+    # The algorithm used to crypt the passwords.
+    # if it is None, we take the first password hasher from PASSWORD_HASHERS as the default hasher.
+    PASSWORD_ALGORITHM = None
+
+    # Hashers supported.
     PASSWORD_HASHERS = [
         'flask_password.hashers.PBKDF2PasswordHasher',
         'flask_password.hashers.BCryptPasswordHasher',
         'flask_password.hashers.MD5PasswordHasher',
         'flask_password.hashers.SHA1PasswordHasher'
     ]
-
-    PASSWORD_ALGORITHM = None
 
     def __init__(self, app=None):
         self.__hashers = {}
@@ -44,6 +53,8 @@ class PasswordHasher(object):
             self.init_app(app)
 
     def init_app(self, app):
+        """Loads the configuration from Flask app."""
+
         self.PASSWORD_ALGORITHM = app.config.get('PASSWORD_ALGORITHM')
         self.PASSWORD_HASHERS = app.config.get('PASSWORD_HASHERS', self.PASSWORD_HASHERS)
 
@@ -57,11 +68,31 @@ class PasswordHasher(object):
                 self.PASSWORD_ALGORITHM = hasher.algorithm
 
     def check_password(self, password, hashed_password):
+        """
+        Compares one plain text password against a hashed password.
+        :param password: A plain text password.
+        :type password: str
+        :param hashed_password: An hashed password
+        :type hashed_password: str
+        :return: True if the password are equal; otherwise, false.
+        """
+
         algorithm = self.get_algorithm(hashed_password)
         hasher = self.get_hasher(algorithm)
         return hasher.check_password(password, hashed_password)
 
     def hash_password(self, password, salt=None, algorithm=None):
+        """
+        Encrypt a password.
+        :param password: A plain text password to be hashed.
+        :type password: str
+        :param salt: The salt used to encrypt the password.
+        :type salt: str
+        :param algorithm: The algorithm used to encrypt the password.
+        :type algorithm: str
+        :return: The hashed password.
+        """
+
         if not algorithm:
             algorithm = self.PASSWORD_ALGORITHM
 
@@ -74,9 +105,20 @@ class PasswordHasher(object):
 
     @staticmethod
     def get_algorithm(hashed_password):
+        """
+        Gets the algorithm from the hashed password.
+        :param hashed_password: hashed password.
+        :type hashed_password: str
+        :return: The algorithm extract from the hashed password.
+        """
         return hashed_password.split('$', 1)[0]
 
     def get_hasher(self, algorithm):
+        """
+        Gets a hasher for the specified algorithm.
+        :param algorithm: The algorithm to be found.
+        :return: A password hasher or exception.
+        """
         try:
             return self.__hashers[algorithm]
         except KeyError:
@@ -84,31 +126,71 @@ class PasswordHasher(object):
 
 
 class BasePasswordHasher(metaclass=ABCMeta):
+    """
+    Base class for the password hashers.
+    """
+
+    # Name of algorithm used to encrypt the password.
+    algorithm = None
+
     def init_app(self, app):
         pass
 
     @abstractmethod
     def check_password(self, password, hashed_password):
+        """
+        Compares one plain text password against a hashed password.
+        :param password: A plain text password.
+        :type password: str
+        :param hashed_password: An hashed password
+        :type hashed_password: str
+        :return: True if the password are equal; otherwise, false.
+        """
         pass
 
     @abstractmethod
     def hash_password(self, password, salt):
+        """
+        Encrypt a password.
+        :param password: A plain text password to be hashed.
+        :type password: str
+        :param salt: The salt used to encrypt the password.
+        :type salt: str
+        :return: The hashed password.
+        """
         pass
 
     def salt(self):
+        """Generate a new salt."""
         return base64.b64encode(os.urandom(16)).decode()
 
 
 class BCryptPasswordHasher(BasePasswordHasher):
+    """
+    BCrypt Password hashing.
+    This hashing is strong and recommended.
+    """
+
     algorithm = 'bcrypt'
     rounds = 12
 
     def init_app(self, app):
+        """Loads the configuration from Flask app."""
+
         rounds = app.config.get('BCRYPT_ROUNDS')
         if rounds:
             self.rounds = rounds
 
     def check_password(self, password, hashed_password):
+        """
+        Compares one plain text password against a bcrypt hashed password.
+        :param password: A plain text password.
+        :type password: str
+        :param hashed_password: An hashed password
+        :type hashed_password: str
+        :return: True if the password are equal; otherwise, false.
+        """
+
         self.__check_bcrypt()
 
         algorithm, data = hashed_password.split('$', 1)
@@ -119,6 +201,15 @@ class BCryptPasswordHasher(BasePasswordHasher):
         return bcrypt.checkpw(password, hashed_password)
 
     def hash_password(self, password, salt):
+        """
+        Encrypt a password using bcrypt algorithm.
+        :param password: A plain text password to be hashed.
+        :type password: str
+        :param salt: The salt used to encrypt the password.
+        :type salt: str
+        :return: The hashed password.
+        """
+
         self.__check_bcrypt()
 
         password = password.encode()
@@ -127,6 +218,8 @@ class BCryptPasswordHasher(BasePasswordHasher):
         return "%s$%s" % (self.algorithm, data)
 
     def salt(self, rounds=None):
+        """Generate a new salt."""
+
         self.__check_bcrypt()
 
         if not rounds:
@@ -135,25 +228,50 @@ class BCryptPasswordHasher(BasePasswordHasher):
 
     @staticmethod
     def __check_bcrypt():
+        """Checks whether bcrypt library has been loaded."""
         if not bcrypt:
             raise ImportError('bcrypt library is not installed. (pip install py-bcrypt)')
 
 
 class PBKDF2PasswordHasher(BasePasswordHasher):
+    """
+    PBKDF2 Password hashing.
+    This hashing is strong and recommended.
+    """
+
     algorithm = "pbkdf2_sha256"
     iterations = 24000
     digest = hashlib.sha256
 
     def init_app(self, app):
+        """Loads the configuration from Flask app."""
+
         iterations = app.config.get('PBKDF2_ITERATIONS')
         if iterations:
             self.iterations = iterations
 
     def check_password(self, password, hashed_password):
+        """
+        Compares one plain text password against a PBKDF2 hashed password.
+        :param password: A plain text password.
+        :type password: str
+        :param hashed_password: An hashed password
+        :type hashed_password: str
+        :return: True if the password are equal; otherwise, false.
+        """
         algorithm, iterations, salt, hash = hashed_password.split('$', 3)
         return self.hash_password(password, salt, int(iterations)) == hashed_password
 
     def hash_password(self, password, salt, iterations=None):
+        """
+        Encrypt a password using PBKDF2 algorithm.
+        :param password: A plain text password to be hashed.
+        :type password: str
+        :param salt: The salt used to encrypt the password.
+        :type salt: str
+        :return: The hashed password.
+        """
+
         if not iterations:
             iterations = self.iterations
 
@@ -166,24 +284,66 @@ class PBKDF2PasswordHasher(BasePasswordHasher):
 
 
 class MD5PasswordHasher(BasePasswordHasher):
+    """
+    MD5 Password hashing.
+    This hashing is too weak so it is not recommended.
+    """
+
     algorithm = "md5"
 
     def check_password(self, password, hashed_password):
+        """
+        Compares one plain text password against a MD5 hashed password.
+        :param password: A plain text password.
+        :type password: str
+        :param hashed_password: An hashed password
+        :type hashed_password: str
+        :return: True if the password are equal; otherwise, false.
+        """
         algorithm, salt, hash = hashed_password.split('$', 2)
         return self.hash_password(password, salt) == hashed_password
 
     def hash_password(self, password, salt):
+        """
+        Encrypt a password using MD5 algorithm.
+        :param password: A plain text password to be hashed.
+        :type password: str
+        :param salt: The salt used to encrypt the password.
+        :type salt: str
+        :return: The hashed password.
+        """
         hash = hashlib.md5((salt + password).encode()).hexdigest()
         return "%s$%s$%s" % (self.algorithm, salt, hash)
 
 
 class SHA1PasswordHasher(BasePasswordHasher):
+    """
+    SHA1 Password hashing.
+    This hashing is too weak so it is not recommended.
+    """
+
     algorithm = "sha1"
 
     def check_password(self, password, hashed_password):
+        """
+        Compares one plain text password against a SHA1 hashed password.
+        :param password: A plain text password.
+        :type password: str
+        :param hashed_password: An hashed password
+        :type hashed_password: str
+        :return: True if the password are equal; otherwise, false.
+        """
         algorithm, salt, hash = hashed_password.split('$', 2)
         return self.hash_password(password, salt) == hashed_password
 
     def hash_password(self, password, salt):
+        """
+        Encrypt a password using SHA1 algorithm.
+        :param password: A plain text password to be hashed.
+        :type password: str
+        :param salt: The salt used to encrypt the password.
+        :type salt: str
+        :return: The hashed password.
+        """
         hash = hashlib.sha1((salt + password).encode()).hexdigest()
         return "%s$%s$%s" % (self.algorithm, salt, hash)

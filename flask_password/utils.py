@@ -16,6 +16,8 @@ from importlib import import_module
 
 
 def import_string(dotted_path):
+    """Imports a class from the its full path."""
+
     try:
         module_path, class_name = dotted_path.rsplit('.', 1)
     except ValueError:
