@@ -29,31 +29,32 @@ except ImportError:
 
 class PasswordHasher(object):
     PASSWORD_HASHERS = [
+        'flask_password.hashers.PBKDF2PasswordHasher',
         'flask_password.hashers.BCryptPasswordHasher',
         'flask_password.hashers.MD5PasswordHasher',
-        'flask_password.hashers.PBKDF2PasswordHasher'
+        'flask_password.hashers.SHA1PasswordHasher'
     ]
 
+    PASSWORD_ALGORITHM = None
+
     def __init__(self, app=None):
-        self.__algorithm = None
         self.__hashers = {}
 
         if app:
             self.init_app(app)
 
     def init_app(self, app):
-        self.__algorithm = app.config.get('PASSWORD_ALGORITHM')
+        self.PASSWORD_ALGORITHM = app.config.get('PASSWORD_ALGORITHM')
+        self.PASSWORD_HASHERS = app.config.get('PASSWORD_HASHERS', self.PASSWORD_HASHERS)
 
-        classes = app.config.get('PASSWORD_HASHERS', self.PASSWORD_HASHERS)
-
-        for class_name in classes:
+        for class_name in self.PASSWORD_HASHERS:
             hasher_cls = import_string(class_name)
             hasher = hasher_cls()
             hasher.init_app(app)
             self.__hashers[hasher.algorithm] = hasher
 
-            if not self.__algorithm:
-                self.__algorithm = hasher.algorithm
+            if not self.PASSWORD_ALGORITHM:
+                self.PASSWORD_ALGORITHM = hasher.algorithm
 
     def check_password(self, password, hashed_password):
         algorithm = self.get_algorithm(hashed_password)
@@ -62,9 +63,9 @@ class PasswordHasher(object):
 
     def hash_password(self, password, salt=None, algorithm=None):
         if not algorithm:
-            algorithm = self.__algorithm
+            algorithm = self.PASSWORD_ALGORITHM
 
-        hasher = self.__hashers.get(algorithm)
+        hasher = self.get_hasher(algorithm)
 
         if not salt:
             salt = hasher.salt()
