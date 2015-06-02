@@ -26,7 +26,7 @@ class TestBCrypt(TestCase):
 
     def test_algorithm(self):
         hashed_password = self.pw.hash_password('password', self.pw.salt())
-        self.assertEqual('bcrypt', PasswordHasher.get_algorithm(hashed_password))
+        self.assertEqual(BCryptPasswordHasher.algorithm, PasswordHasher.get_algorithm(hashed_password))
 
     def test_salt(self):
         self.assertNotEqual(self.pw.salt(), None)

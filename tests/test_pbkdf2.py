@@ -26,7 +26,7 @@ class TestPBKDF2(TestCase):
 
     def test_algorithm(self):
         hashed_password = self.pw.hash_password('password', self.pw.salt())
-        self.assertEqual('pbkdf2_sha256', PasswordHasher.get_algorithm(hashed_password))
+        self.assertEqual(PBKDF2PasswordHasher.algorithm, PasswordHasher.get_algorithm(hashed_password))
 
     def test_salt(self):
         self.assertNotEqual(self.pw.salt(), None)

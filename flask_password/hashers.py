@@ -35,7 +35,7 @@ class PasswordHasher(object):
     """
 
     # The algorithm used to crypt the passwords.
-    # if it is None, we take the first password hasher from PASSWORD_HASHERS as the default hasher.
+    # if it is None, we will take the first password hasher from PASSWORD_HASHERS as the default hasher.
     PASSWORD_ALGORITHM = None
 
     # Hashers supported.
