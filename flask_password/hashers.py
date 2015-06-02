@@ -1,11 +1,23 @@
+# Copyright 2015 Vinicius Chiele. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import base64
 import hashlib
 import os
 
 from abc import ABCMeta
 from abc import abstractmethod
-from .utils import force_bytes
-from .utils import force_text
 from .utils import import_string
 
 
@@ -96,32 +108,32 @@ class BCryptPasswordHasher(BasePasswordHasher):
             self.rounds = rounds
 
     def check_password(self, password, hashed_password):
-        self.__validate_library()
+        self.__check_bcrypt()
 
         algorithm, data = hashed_password.split('$', 1)
 
-        password = force_bytes(password)
-        hashed_password = force_bytes(data)
+        password = password.encode()
+        hashed_password = data.encode()
 
         return bcrypt.checkpw(password, hashed_password)
 
     def hash_password(self, password, salt):
-        self.__validate_library()
+        self.__check_bcrypt()
 
-        password = force_bytes(password)
+        password = password.encode()
 
         data = bcrypt.hashpw(password, salt)
-        return "%s$%s" % (self.algorithm, force_text(data))
+        return "%s$%s" % (self.algorithm, data)
 
     def salt(self, rounds=None):
-        self.__validate_library()
+        self.__check_bcrypt()
 
         if not rounds:
             rounds = self.rounds
         return bcrypt.gensalt(rounds)
 
     @staticmethod
-    def __validate_library():
+    def __check_bcrypt():
         if not bcrypt:
             raise ImportError('bcrypt library is not installed. (pip install py-bcrypt)')
 
@@ -144,8 +156,8 @@ class PBKDF2PasswordHasher(BasePasswordHasher):
         if not iterations:
             iterations = self.iterations
 
-        password_bytes = force_bytes(password)
-        salt_bytes = force_bytes(salt)
+        password_bytes = password.encode()
+        salt_bytes = salt.encode()
 
         hash = hashlib.pbkdf2_hmac(self.digest().name, password_bytes, salt_bytes, iterations)
         hash = base64.b64encode(hash).decode('ascii').strip()
@@ -160,7 +172,7 @@ class MD5PasswordHasher(BasePasswordHasher):
         return self.hash_password(password, salt) == hashed_password
 
     def hash_password(self, password, salt):
-        hash = hashlib.md5(force_bytes(salt + password)).hexdigest()
+        hash = hashlib.md5((salt + password).encode()).hexdigest()
         return "%s$%s$%s" % (self.algorithm, salt, hash)
 
 
@@ -172,5 +184,5 @@ class SHA1PasswordHasher(BasePasswordHasher):
         return self.hash_password(password, salt) == hashed_password
 
     def hash_password(self, password, salt):
-        hash = hashlib.sha1(force_bytes(salt + password)).hexdigest()
+        hash = hashlib.sha1((salt + password).encode()).hexdigest()
         return "%s$%s$%s" % (self.algorithm, salt, hash)
