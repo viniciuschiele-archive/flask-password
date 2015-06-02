@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from flask import Flask
-from unittest import TestCase
 from flask_password import PasswordHasher
 from flask_password.hashers import MD5PasswordHasher
+from unittest import TestCase
 
 
 class TestMD5(TestCase):
