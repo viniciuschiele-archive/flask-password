@@ -276,6 +276,7 @@ class PBKDF2PasswordHasher(BasePasswordHasher):
         :type hashed_password: str
         :return: True if the password are equal; otherwise, false.
         """
+
         algorithm, iterations, salt, hash = hashed_password.split('$', 3)
         return self.hash_password(password, salt, int(iterations)) == hashed_password
 
@@ -317,6 +318,7 @@ class MD5PasswordHasher(BasePasswordHasher):
         :type hashed_password: str
         :return: True if the password are equal; otherwise, false.
         """
+
         algorithm, salt, hash = hashed_password.split('$', 2)
         return self.hash_password(password, salt) == hashed_password
 
@@ -329,6 +331,7 @@ class MD5PasswordHasher(BasePasswordHasher):
         :type salt: str
         :return: The hashed password.
         """
+
         hash = hashlib.md5((salt + password).encode()).hexdigest()
         return "%s$%s$%s" % (self.algorithm, salt, hash)
 
@@ -350,6 +353,7 @@ class SHA1PasswordHasher(BasePasswordHasher):
         :type hashed_password: str
         :return: True if the password are equal; otherwise, false.
         """
+
         algorithm, salt, hash = hashed_password.split('$', 2)
         return self.hash_password(password, salt) == hashed_password
 
@@ -362,5 +366,6 @@ class SHA1PasswordHasher(BasePasswordHasher):
         :type salt: str
         :return: The hashed password.
         """
+
         hash = hashlib.sha1((salt + password).encode()).hexdigest()
         return "%s$%s$%s" % (self.algorithm, salt, hash)
