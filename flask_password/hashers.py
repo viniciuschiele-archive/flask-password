@@ -45,7 +45,7 @@ class PasswordHasher(object):
 
     def check_password(self, password, hashed_password):
         algorithm = self.get_algorithm(hashed_password)
-        hasher = self.get_algorithm(algorithm)
+        hasher = self.get_hasher(algorithm)
         return hasher.check_password(password, hashed_password)
 
     def hash_password(self, password, salt=None, algorithm=None):
@@ -59,15 +59,15 @@ class PasswordHasher(object):
 
         return hasher.hash_password(password, salt)
 
+    @staticmethod
+    def get_algorithm(hashed_password):
+        return hashed_password.split('$', 1)[0]
+
     def get_hasher(self, algorithm):
         try:
             return self.__hashers[algorithm]
         except KeyError:
             raise ValueError("Unknown password hashing algorithm '%s'. " % algorithm)
-
-    @staticmethod
-    def get_algorithm(hashed_password):
-        return hashed_password.split('$', 1)[0]
 
 
 class BasePasswordHasher(metaclass=ABCMeta):
