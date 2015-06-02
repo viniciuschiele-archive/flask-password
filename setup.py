@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='flask-password',
     version='0.5.0',
-    packages=['flask-password'],
+    packages=['flask_password'],
     url='https://github.com/viniciuschiele/flask-password',
     license='Apache 2.0',
     author='Vinicius Chiele',
