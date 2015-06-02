@@ -23,14 +23,14 @@ class PasswordHasher(object):
     ]
 
     def __init__(self, app=None):
-        self.__default_algorithm = None
+        self.__algorithm = None
         self.__hashers = {}
 
         if app:
             self.init_app(app)
 
     def init_app(self, app):
-        self.__default_algorithm = app.config.get('DEFAULT_ALGORITHM')
+        self.__algorithm = app.config.get('PASSWORD_ALGORITHM')
 
         classes = app.config.get('PASSWORD_HASHERS', self.PASSWORD_HASHERS)
 
@@ -40,8 +40,8 @@ class PasswordHasher(object):
             hasher.init_app(app)
             self.__hashers[hasher.algorithm] = hasher
 
-            if not self.__default_algorithm:
-                self.__default_algorithm = hasher.algorithm
+            if not self.__algorithm:
+                self.__algorithm = hasher.algorithm
 
     def check_password(self, password, hashed_password):
         algorithm = self.get_algorithm(hashed_password)
@@ -50,7 +50,7 @@ class PasswordHasher(object):
 
     def hash_password(self, password, salt=None, algorithm=None):
         if not algorithm:
-            algorithm = self.__default_algorithm
+            algorithm = self.__algorithm
 
         hasher = self.__hashers.get(algorithm)
 
