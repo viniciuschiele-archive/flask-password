@@ -18,6 +18,7 @@ import os
 
 from abc import ABCMeta
 from abc import abstractmethod
+from functools import lru_cache
 from .utils import import_string
 
 
@@ -58,14 +59,8 @@ class PasswordHasher(object):
         self.algorithm = app.config.get('PASSWORD_ALGORITHM')
         self.hashers = app.config.get('PASSWORD_HASHERS', self.hashers)
 
-        for class_name in self.hashers:
-            hasher_cls = import_string(class_name)
-            hasher = hasher_cls()
+        for hasher in self.get_hashers():
             hasher.init_app(app)
-            self.__hashers[hasher.algorithm] = hasher
-
-            if not self.algorithm:
-                self.algorithm = hasher.algorithm
 
     def check_password(self, password, hashed_password):
         """
@@ -113,16 +108,38 @@ class PasswordHasher(object):
         """
         return hashed_password.split('$', 1)[0]
 
-    def get_hasher(self, algorithm):
+    def get_hasher(self, algorithm=None):
         """
         Gets a hasher for the specified algorithm.
         :param algorithm: The algorithm to be found.
         :return: A password hasher or exception.
         """
-        try:
-            return self.__hashers[algorithm]
-        except KeyError:
-            raise ValueError("Unknown password hashing algorithm '%s'. " % algorithm)
+
+        hashers = self.get_hashers()
+
+        if algorithm is None:
+            return hashers[0]
+
+        for hasher in hashers:
+            if hasher.algorithm == algorithm:
+                return hasher
+
+        raise ValueError("Unknown password hashing algorithm '%s'. " % algorithm)
+
+    @lru_cache()
+    def get_hashers(self):
+        """
+        Gets all hashers registered.
+        :return: A list of hashers.
+        """
+        hashers = []
+
+        for class_name in self.hashers:
+            hasher_cls = import_string(class_name)
+            hasher = hasher_cls()
+            hashers.append(hasher)
+
+        return hashers
 
 
 class BasePasswordHasher(metaclass=ABCMeta):
