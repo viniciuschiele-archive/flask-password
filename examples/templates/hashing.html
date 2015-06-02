@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title></title>
+</head>
+<body>
+  <form method="POST">
+    Password: <input id="password" name="password" type="text" value="" /><br>
+    Algorithm: <select id="algorithm" name="algorithm">
+      <option value="bcrypt">BCrypt</option>
+      <option value="md5">MD4</option>
+      <option value="sha1">SHA1</option>
+      <option value="pbkdf2_sha256">PBKDF2_SHA256</option>
+    </select>
+    <br>
+    <button type="submit">Hash</button>
+    <br>
+    <br>
+    <label>Hashed password: {{ hashed_password }}</label><br>
+    <label>Hashed password Length: {{ hashed_password_length }}</label>
+  </form>
+</body>
+</html>
