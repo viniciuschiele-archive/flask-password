@@ -1,3 +1,17 @@
+# Copyright 2015 Vinicius Chiele. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from flask import Flask
 from unittest import TestCase
 from flask_password import PasswordHasher
@@ -9,14 +23,6 @@ class TestPBKDF2(TestCase):
         self.app = Flask(__name__)
         self.app.config['PBKDF2_ITERATIONS'] = 30000
         self.pw = PBKDF2PasswordHasher()
-
-    def test_is_string(self):
-        hashed_password = self.pw.hash_password('password', self.pw.salt())
-        self.assertTrue(isinstance(hashed_password, str))
-
-    def test_not_string(self):
-        pw_hash = self.pw.hash_password(42, self.pw.salt())
-        self.assertTrue(isinstance(pw_hash, str))
 
     def test_algorithm(self):
         hashed_password = self.pw.hash_password('password', self.pw.salt())
