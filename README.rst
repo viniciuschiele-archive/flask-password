@@ -1,7 +1,7 @@
 =================================
 Flask Password
 =================================
-Flask Password.
+Password hashing for Python 3+ integrated with Flask.
 
 Feedback
 ===============
