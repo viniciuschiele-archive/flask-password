@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_password import PasswordHasher
 
+
 class Config(object):
     PASSWORD_ALGORITHM = 'bcrypt'
     BCRYPT_ROUNDS = 14

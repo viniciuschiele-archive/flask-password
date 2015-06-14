@@ -1,8 +1,9 @@
 from flask import Flask
 from flask_password import PasswordHasher
 
+
 class Config(object):
-    PASSWORD_ALGORITHM = 'pbkdf2_sha256'
+    PASSWORD_ALGORITHM = 'pbkdf2'
     PBKDF2_ITERATIONS = 50000
 
 app = Flask(__name__)

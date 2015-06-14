@@ -62,6 +62,10 @@ class PasswordHasher(object):
         for hasher in self.get_hashers():
             hasher.init_app(app)
 
+        if self.algorithm is None:
+            hasher = self.get_hashers()[0]
+            self.algorithm = hasher.algorithm
+
     def check_password(self, password, hashed_password):
         """
         Compares one plain text password against a hashed password.
@@ -108,7 +112,7 @@ class PasswordHasher(object):
         """
         return hashed_password.split('$', 1)[0]
 
-    def get_hasher(self, algorithm=None):
+    def get_hasher(self, algorithm):
         """
         Gets a hasher for the specified algorithm.
         :param algorithm: The algorithm to be found.
@@ -256,7 +260,7 @@ class PBKDF2PasswordHasher(BasePasswordHasher):
     This hashing is strong and recommended.
     """
 
-    algorithm = "pbkdf2_sha256"
+    algorithm = "pbkdf2"
     iterations = 24000
     digest = hashlib.sha256
 

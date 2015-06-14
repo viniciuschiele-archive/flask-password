@@ -23,7 +23,7 @@ class TestHasher(TestCase):
         self.pw = PasswordHasher(self.app)
 
     def test_default_algorithm(self):
-        self.assertEqual(self.pw.algorithm, 'pbkdf2_sha256')
+        self.assertEqual(self.pw.algorithm, 'pbkdf2')
 
     def test_hash_password(self):
         hashed_password1 = self.pw.hash_password('password')
