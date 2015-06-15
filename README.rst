@@ -3,6 +3,10 @@ Flask Password
 =================================
 Password hashing for Python 3+ integrated with Flask.
 
+Documentation
+===============
+Soon... take a look at the examples_ to see how it works.
+
 Feedback
 ===============
 Please use the Issues_ for feature requests and troubleshooting usage.
@@ -15,6 +19,8 @@ Please use the Issues_ for feature requests and troubleshooting usage.
    
 .. |License| image:: https://pypip.in/license/flask-password/badge.svg?
    :target: https://github.com/viniciuschiele/flask-password/blob/master/LICENSE
+
+.. _examples: https://github.com/viniciuschiele/flask-password/tree/master/examples
 
 .. _Issues: https://github.com/viniciuschiele/flask-password/issues
 
